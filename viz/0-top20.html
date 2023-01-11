@@ -21,7 +21,7 @@
       Comment sont réparties les inégalités de genre dans le monde à travers les
       années en fonction des secteurs ?
     </h2>
-    <h3>CHAPPAZ FLorian - DE OLIVEIRA Valentin - NGUYEN Clément</h3>
+    <h3>CHAPPAZ Florian - DE OLIVEIRA Valentin - NGUYEN Clément</h3>
 
     <script src="../vendor/d3-7.1.1/dist/d3.js"></script>
     <script src="../vendor/topojson/topojson.min.js"></script>
@@ -98,16 +98,11 @@
             .attr("class", "country")
             .on("mouseover", function (d, i) {
               d3.selectAll(".country").transition().duration(200);
-              d3.select(this)
-                .transition()
-                .duration(200)
-                .style("fill", "#a06e84");
+              d3.select(this).style("fill", "#a06e84");
             })
             .on("mouseout", function (d, i) {
               d3.selectAll(".country").transition().duration(200);
               d3.select(this)
-                .transition()
-                .duration(200)
                 .style("stroke", "#a06e84")
                 .style("fill", "#74aeaf");
             });
