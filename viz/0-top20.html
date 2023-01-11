@@ -94,27 +94,22 @@
             .append("path")
             .attr("d", path)
             .attr("fill", "#74aeaf")
+            .attr("stroke", "#a06e84")
             .attr("class", "country")
             .on("mouseover", function (d, i) {
-              d3.selectAll(".country")
-                .transition()
-                .duration(200)
-                .style("opacity", 0.5);
+              d3.selectAll(".country").transition().duration(200);
               d3.select(this)
                 .transition()
                 .duration(200)
-                .style("opacity", 0.5)
-                .style("stroke", "black");
+                .style("fill", "#a06e84");
             })
             .on("mouseout", function (d, i) {
-              d3.selectAll(".country")
-                .transition()
-                .duration(200)
-                .style("opacity", 0.8);
+              d3.selectAll(".country").transition().duration(200);
               d3.select(this)
                 .transition()
                 .duration(200)
-                .style("stroke", "transparent");
+                .style("stroke", "#a06e84")
+                .style("fill", "#74aeaf");
             });
         });
       });
