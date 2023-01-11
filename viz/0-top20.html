@@ -23,91 +23,118 @@
     </h2>
     <h3>CHAPPAZ Florian - DE OLIVEIRA Valentin - NGUYEN Clément</h3>
 
-    <script src="../vendor/d3-7.1.1/dist/d3.js"></script>
-    <script src="../vendor/topojson/topojson.min.js"></script>
-    <script>
-      var body = d3.select("body");
+<head>
+	<meta charset="utf-8" />
+	<style type="text/css" media="screen, print">
+		body {
+			margin: 30px 50px;
+			font-family: sans-serif;
+		}
 
-      var f = d3.format(".2f");
+		svg {
+			width: 100%;
+			height: 500px;
+			margin: 0px auto;
+		}
+	</style>
+	<title>Global Gender Gap index</title>
+</head>
 
-      Promise.all([
-        d3.tsv("../data/gggi.tsv", (d) => ({
-          iso3: d["#alpha3"],
-          indicator: d.indicator,
-          year: +d.year,
-          i: +d.index,
-          r: +d.rank,
-        })),
+<body>
+	<h1>Global Gender Gap index –</h1>
+	<h2>
+		Comment sont réparties les inégalités de genre dans le monde à travers les
+		années en fonction des secteurs ?
+	</h2>
+	<h3>CHAPPAZ FLorian - DE OLIVEIRA Valentin - NGUYEN Clément</h3>
 
-        d3.tsv("../data/iso3.tsv", (d) => ({
-          iso3: d["#alpha3"],
-          country: d.country,
-          subregion: d.subregion,
-          region: d.region,
-        })),
-      ]).then(function (datasets) {
-        // map 3 letters country codes to countries
-        let countries = Object.fromEntries(datasets[1].map((c) => [c.iso3, c]));
-        let data = datasets[0]; // gggi dataset
+	<script src="../vendor/d3-7.1.1/dist/d3.js"></script>
+	<script src="../vendor/topojson/topojson.min.js"></script>
+	<script>
+		var body = d3.select("body");
 
-        // dropdown years
-        let dropdown = body.select("h1").append("select");
-        let years = [...new Set(data.map((d) => d.year))].sort(d3.descending); // collect the years from data set
-        var options = dropdown
-          .selectAll("option")
-          .data(years)
-          .enter()
-          .append("option")
-          .text((d) => d)
-          .attr("value", (d) => d);
+		var f = d3.format(".2f");
 
-        // build country list for given year
-        var country_list = body.append("ol");
-        function update(year) {
-          var selection = country_list
-            .selectAll("li")
-            .data(
-              data
-                .filter((d) => d.year == year) // consider data for given year
-                .filter((d) => d.indicator == "glob") // consider global index
-                .filter((d) => !isNaN(d.i)) // filter out nans
-                .sort((a, b) => d3.descending(a.i, b.i)) // sort according to index
-                .slice(0, 20) // keep top-20
-            )
-            .join("li") // enter, update, exit at once
-            .text((d) => `${countries[d.iso3].country} – ${f(d.i)}`);
-        }
+		Promise.all([
+			d3.tsv("../data/gggi.tsv", (d) => ({
+				iso3: d["#alpha3"],
+				indicator: d.indicator,
+				year: +d.year,
+				i: +d.index,
+				r: +d.rank,
+			})),
 
-        dropdown.on("change", (e) => {
-          update(dropdown.property("value"));
-        });
-        dropdown.dispatch("change"); // force initial update
+			d3.tsv("../data/iso3.tsv", (d) => ({
+				iso3: d["#alpha3"],
+				country: d.country,
+				subregion: d.subregion,
+				region: d.region,
+			})),
+		]).then(function (datasets) {
+			// map 3 letters country codes to countries
+			let countries = Object.fromEntries(datasets[1].map((c) => [c.iso3, c]));
+			let data = datasets[0]; // gggi dataset
 
-        var svg = d3.select("body").append("svg");
-        var path = d3.geoPath().projection(d3.geoMercator());
-        d3.json("./110m.json").then(function (world) {
-          console.log(world);
-          svg
-            .selectAll("path")
-            .data(topojson.feature(world, world.objects.countries).features)
-            .enter()
-            .append("path")
-            .attr("d", path)
-            .attr("fill", "#74aeaf")
-            .attr("stroke", "#a06e84")
-            .attr("class", "country")
-            .on("mouseover", function (d, i) {
-              d3.selectAll(".country").transition().duration(200);
-              d3.select(this).style("fill", "#a06e84");
-            })
-            .on("mouseout", function (d, i) {
-              d3.selectAll(".country").transition().duration(200);
-              d3.select(this)
-                .style("stroke", "#a06e84")
-                .style("fill", "#74aeaf");
-            });
-        });
-      });
-    </script>
-  </body>
+			// dropdown years
+			let dropdown = body.select("h1").append("select");
+			let years = [...new Set(data.map((d) => d.year))].sort(d3.descending); // collect the years from data set
+			var options = dropdown
+				.selectAll("option")
+				.data(years)
+				.enter()
+				.append("option")
+				.text((d) => d)
+				.attr("value", (d) => d);
+
+			// build country list for given year
+			var country_list = body.append("ol");
+			function update(year) {
+				var selection = country_list
+					.selectAll("li")
+					.data(
+						data
+							.filter((d) => d.year == year) // consider data for given year
+							.filter((d) => d.indicator == "glob") // consider global index
+							.filter((d) => !isNaN(d.i)) // filter out nans
+							.sort((a, b) => d3.descending(a.i, b.i)) // sort according to index
+							.slice(0, 20) // keep top-20
+					)
+					.join("li") // enter, update, exit at once
+					.text((d) => `${countries[d.iso3].country} – ${f(d.i)}`);
+			}
+
+			dropdown.on("change", (e) => {
+				update(dropdown.property("value"));
+			});
+			dropdown.dispatch("change"); // force initial update
+
+			var svg = d3.select("body").append("svg");
+			var path = d3.geoPath().projection(d3.geoMercator());
+			d3.json("./110m.json").then(function (world) {
+				console.log(world);
+				svg
+					.selectAll("path")
+					.data(topojson.feature(world, world.objects.countries).features)
+					.enter()
+					.append("path")
+					.attr("d", path)
+					.attr("fill", "#74aeaf")
+					.attr("stroke", "#a06e84")
+					.attr("class", "country")
+					.on("mouseover", function (d, i) {
+						d3.selectAll(".country").transition().duration(200);
+						d3.select(this)
+							.style("fill", "#a06e84");
+					})
+					.on("mouseout", function (d, i) {
+						d3.selectAll(".country").transition().duration(200);
+						d3.select(this)
+							.style("stroke", "#a06e84")
+							.style("fill", "#74aeaf");
+					});
+			});
+		});
+	</script>
+</body>
+
 </html>
