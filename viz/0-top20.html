@@ -1,27 +1,5 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="utf-8" />
-    <style type="text/css" media="screen, print">
-      body {
-        margin: 30px 50px;
-        font-family: sans-serif;
-      }
-      svg {
-        width: 100%;
-        height: 500px;
-        margin: 0px auto;
-      }
-    </style>
-    <title>Global Gender Gap index</title>
-  </head>
-  <body>
-    <h1>Global Gender Gap index –</h1>
-    <h2>
-      Comment sont réparties les inégalités de genre dans le monde à travers les
-      années en fonction des secteurs ?
-    </h2>
-    <h3>CHAPPAZ Florian - DE OLIVEIRA Valentin - NGUYEN Clément</h3>
 
 <head>
 	<meta charset="utf-8" />
@@ -116,11 +94,14 @@
 					.selectAll("path")
 					.data(topojson.feature(world, world.objects.countries).features)
 					.enter()
+					.append('g')
+					.attr('class', 'container')
+
 					.append("path")
 					.attr("d", path)
 					.attr("fill", "#74aeaf")
 					.attr("stroke", "#a06e84")
-					.attr("class", "country")
+					.attr("class", d => `id-${d.id}`)
 					.on("mouseover", function (d, i) {
 						d3.selectAll(".country").transition().duration(200);
 						d3.select(this)
@@ -132,6 +113,41 @@
 							.style("stroke", "#a06e84")
 							.style("fill", "#74aeaf");
 					});
+
+
+				svg.selectAll("g > path").each(function (d) {
+					if (d.geometry.type == 'MultiPolygon') {
+						//console.log(d.geometry.coordinates[0])
+						const id = d.id;
+
+						var path = svg.select(`.id-${id}`);
+						var bbox = path.node().getBBox();
+					}
+					else {
+						var path = d3.select(this);
+						var bbox = path.node().getBBox();
+					}
+
+					var centerX = bbox.x + bbox.width / 2;
+					var centerY = bbox.y + bbox.height / 2;
+
+					//Get the parent g element
+					var parentG = d3.select(this.parentNode);
+
+					//Append a circle with radius 10
+					parentG.append("circle")
+						.attr("cx", centerX)
+						.attr("cy", centerY)
+						.attr("r", 2);
+				});
+
+				/*					.append('circle')
+									.attr('class', '0')
+									.attr('cx', 0)
+									.attr('cy', 0)
+									.attr('r', 5)
+									.attr('stroke', 'black')
+									.attr('fill', 'red');*/
 			});
 		});
 	</script>
