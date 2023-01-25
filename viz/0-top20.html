@@ -86,10 +86,12 @@
 			});
 			dropdown.dispatch("change"); // force initial update
 
+			// color of country
+			const color = d3.scaleOrdinal(d3.schemeCategory10);
+
 			var svg = d3.select("body").append("svg");
 			var path = d3.geoPath().projection(d3.geoMercator());
 			d3.json("./110m.json").then(function (world) {
-				console.log(world);
 				svg
 					.selectAll("path")
 					.data(topojson.feature(world, world.objects.countries).features)
@@ -116,7 +118,7 @@
 
 
 				svg.selectAll("g > path").each(function (d) {
-					if (d.geometry.type == 'MultiPolygon') {
+					if (d.geometry.type == 'Polygon') {
 						//console.log(d.geometry.coordinates[0])
 						const id = d.id;
 
