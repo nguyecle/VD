@@ -48,9 +48,28 @@
 				subregion: d.subregion,
 				region: d.region,
 			})),
+
+			d3.csv("../data/iso-3166.csv", (d) => ({
+				iso3: d["ISO-alpha3 Code"],
+				iso2: d["ISO-alpha2 Code"],
+				m49: d["M49 Code"],
+			})),
+
+			d3.csv("./countries_centers.csv", (d) => ({
+				iso2:  d["ISO"],
+				lon: d.longitude,
+				lat: d.latitude,
+			})),
 		]).then(function (datasets) {
 			// map 3 letters country codes to countries
 			let countries = Object.fromEntries(datasets[1].map((c) => [c.iso3, c]));
+			// map iso2 to iso3
+			let iso2_iso3 = Object.fromEntries(datasets[2].map((c) => [c.iso2, c.iso3]));
+			// map m49 to country 
+			let m49_iso2 = Object.fromEntries(datasets[2].map((c) => [c.m49, c.iso2]));
+			// map iso2 to country centers
+			let countries_centers = Object.fromEntries(datasets[3].map((c) => [c.iso2, c]));
+
 			let data = datasets[0]; // gggi dataset
 
 			// dropdown years
@@ -90,14 +109,15 @@
 			const color = d3.scaleOrdinal(d3.schemeCategory10);
 
 			var svg = d3.select("body").append("svg");
-			var path = d3.geoPath().projection(d3.geoMercator());
+			var xy = d3.geoMercator();
+			var path = d3.geoPath().projection(xy);
 			d3.json("./110m.json").then(function (world) {
 				svg
 					.selectAll("path")
 					.data(topojson.feature(world, world.objects.countries).features)
 					.enter()
 					.append('g')
-					.attr('class', 'container')
+					.attr('class', d => `container`)
 
 					.append("path")
 					.attr("d", path)
@@ -116,40 +136,12 @@
 							.style("fill", "#74aeaf");
 					});
 
-
-				svg.selectAll("g > path").each(function (d) {
-					if (d.geometry.type == 'Polygon') {
-						//console.log(d.geometry.coordinates[0])
-						const id = d.id;
-
-						var path = svg.select(`.id-${id}`);
-						var bbox = path.node().getBBox();
-					}
-					else {
-						var path = d3.select(this);
-						var bbox = path.node().getBBox();
-					}
-
-					var centerX = bbox.x + bbox.width / 2;
-					var centerY = bbox.y + bbox.height / 2;
-
-					//Get the parent g element
-					var parentG = d3.select(this.parentNode);
-
-					//Append a circle with radius 10
-					parentG.append("circle")
-						.attr("cx", centerX)
-						.attr("cy", centerY)
-						.attr("r", 2);
-				});
-
-				/*					.append('circle')
-									.attr('class', '0')
-									.attr('cx', 0)
-									.attr('cy', 0)
-									.attr('r', 5)
-									.attr('stroke', 'black')
-									.attr('fill', 'red');*/
+				svg
+					.selectAll(".container")
+					.append("circle")
+					.attr("cx", d => d.id === "-99" || d.id === "732" || d.id === "158" ? -500 : xy([countries_centers[m49_iso2[d.id]].lon, countries_centers[m49_iso2[d.id]].lat])[0])
+					.attr("cy", d => d.id === "-99" || d.id === "732" || d.id === "158" ? -500 : xy([countries_centers[m49_iso2[d.id]].lon, countries_centers[m49_iso2[d.id]].lat])[1])
+					.attr("r", 2);
 			});
 		});
 	</script>
