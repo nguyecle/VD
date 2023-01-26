@@ -19,12 +19,12 @@
 </head>
 
 <body>
-	<h1>Global Gender Gap index –</h1>
+	<h1>Global Gender Gap index –</h1>
 	<h2>
 		Comment sont réparties les inégalités de genre dans le monde à travers les
 		années en fonction des secteurs ?
 	</h2>
-	<h3>CHAPPAZ FLorian - DE OLIVEIRA Valentin - NGUYEN Clément</h3>
+	<h3>CHAPPAZ Florian - DE OLIVEIRA Valentin - NGUYEN Clément</h3>
 
 	<script src="../vendor/d3-7.1.1/dist/d3.js"></script>
 	<script src="../vendor/topojson/topojson.min.js"></script>
@@ -63,6 +63,33 @@
 		]).then(function (datasets) {
 			// map 3 letters country codes to countries
 			let countries = Object.fromEntries(datasets[1].map((c) => [c.iso3, c]));
+			// map 3 letters country codes with 2020 global index
+			let iso3_globalIndex = Object.fromEntries(datasets[0]
+				.filter((item) => item.year === 2020)
+				.filter((item) => item.indicator === "glob")
+				.map((c) => [c.iso3, c.i])
+			);
+			let iso3_ecoIndex = Object.fromEntries(datasets[0]
+				.filter((item) => item.year === 2020)
+				.filter((item) => item.indicator === "eco")
+				.map((c) => [c.iso3, c.i])
+			);
+			let iso3_eduIndex = Object.fromEntries(datasets[0]
+				.filter((item) => item.year === 2020)
+				.filter((item) => item.indicator === "edu")
+				.map((c) => [c.iso3, c.i])
+			);
+			let iso3_healthIndex = Object.fromEntries(datasets[0]
+				.filter((item) => item.year === 2020)
+				.filter((item) => item.indicator === "health")
+				.map((c) => [c.iso3, c.i])
+			);
+			let iso3_polIndex = Object.fromEntries(datasets[0]
+				.filter((item) => item.year === 2020)
+				.filter((item) => item.indicator === "pol")
+				.map((c) => [c.iso3, c.i])
+			);
+
 			// map iso2 to iso3
 			let iso2_iso3 = Object.fromEntries(datasets[2].map((c) => [c.iso2, c.iso3]));
 			// map m49 to country 
@@ -136,6 +163,64 @@
 				return xy([countries_centers[m49_iso2[id]].lon, countries_centers[m49_iso2[id]].lat])[1];
 			}
 
+			function getM49GlobalIndex(id) {
+				if (controversed_m49_countries.findIndex(e => e.id === id) !== -1)
+					return 0;
+
+				if (iso3_globalIndex[m49_iso3[id]] === undefined || isNaN(iso3_globalIndex[m49_iso3[id]]))
+					return 0;
+
+				return iso3_globalIndex[m49_iso3[id]];
+			}
+
+			function getM49EcoIndex(id) {
+				if (controversed_m49_countries.findIndex(e => e.id === id) !== -1)
+					return 0;
+
+				if (iso3_ecoIndex[m49_iso3[id]] === undefined || isNaN(iso3_ecoIndex[m49_iso3[id]]))
+					return 0;
+
+				return iso3_ecoIndex[m49_iso3[id]];
+			}
+
+			function getM49EduIndex(id) {
+				if (controversed_m49_countries.findIndex(e => e.id === id) !== -1)
+					return 0;
+
+				if (iso3_eduIndex[m49_iso3[id]] === undefined || isNaN(iso3_eduIndex[m49_iso3[id]]))
+					return 0;
+
+				return iso3_eduIndex[m49_iso3[id]];
+			}
+
+			function getM49HealthIndex(id) {
+				if (controversed_m49_countries.findIndex(e => e.id === id) !== -1)
+					return 0;
+
+				if (iso3_healthIndex[m49_iso3[id]] === undefined || isNaN(iso3_healthIndex[m49_iso3[id]]))
+					return 0;
+
+				return iso3_healthIndex[m49_iso3[id]];
+			}
+
+			function getM49PolIndex(id) {
+				if (controversed_m49_countries.findIndex(e => e.id === id) !== -1)
+					return 0;
+
+				if (iso3_polIndex[m49_iso3[id]] === undefined || isNaN(iso3_polIndex[m49_iso3[id]]))
+					return 0;
+
+				return iso3_polIndex[m49_iso3[id]];
+			}
+
+			var glob_scale = d3.scalePow()
+				.exponent(3)
+				.domain([0, 1])
+				.range([0, 8]);
+
+			// TODO: proportion index scale formulae : index / (glob * 4)
+
+
 			d3.json("./110m.json").then(function (world) {
 				svg
 					.selectAll("path")
@@ -161,12 +246,63 @@
 							.style("fill", "#74aeaf");
 					});
 
+				// eco
 				svg
 					.selectAll(".container")
 					.append("circle")
-					.attr("cx", d => getM49Lon(d.id))
-					.attr("cy", d => getM49Lat(d.id))
-					.attr("r", 2);
+						.attr("cx", d => getM49Lon(d.id))
+						.attr("cy", d => getM49Lat(d.id))
+						.attr("r", d => glob_scale(getM49GlobalIndex(d.id)))
+						.attr("style", d => `
+							fill: none; 
+							stroke-width: ${2*glob_scale(getM49GlobalIndex(d.id))}px; 
+							stroke-dasharray: ${(getM49EcoIndex(d.id) / (4*getM49GlobalIndex(d.id))) * (2*Math.PI*glob_scale(getM49GlobalIndex(d.id)))} ${2*Math.PI*getM49GlobalIndex(d.id)}; 
+							stroke: purple
+						`);
+
+				// edu
+				svg
+					.selectAll(".container")
+					.append("circle")
+						.attr("cx", d => getM49Lon(d.id))
+						.attr("cy", d => getM49Lat(d.id))
+						.attr("r", d => glob_scale(getM49GlobalIndex(d.id)))
+						.attr("style", d => `
+							fill: none; 
+							stroke-width: ${2*glob_scale(getM49GlobalIndex(d.id))}px; 
+							stroke-dasharray: ${(getM49EduIndex(d.id) / (4*getM49GlobalIndex(d.id))) * (2*Math.PI*glob_scale(getM49GlobalIndex(d.id)))} ${2*Math.PI*getM49GlobalIndex(d.id)}; 
+							stroke: yellow; 
+						`);
+
+				// health
+				svg
+					.selectAll(".container")
+					.append("circle")
+						.attr("cx", d => getM49Lon(d.id))
+						.attr("cy", d => getM49Lat(d.id))
+						.attr("r", d => glob_scale(getM49GlobalIndex(d.id)))
+						.attr("style", d => `
+							fill: none; 
+							stroke-width: ${2*glob_scale(getM49GlobalIndex(d.id))}px; 
+							stroke-dasharray: ${(getM49HealthIndex(d.id) / (4*getM49GlobalIndex(d.id))) * (2*Math.PI*glob_scale(getM49GlobalIndex(d.id)))} ${2*Math.PI*getM49GlobalIndex(d.id)}; 
+							stroke: green; 
+						`);
+
+
+				// pol
+				svg
+					.selectAll(".container")
+					.append("circle")
+						.attr("cx", d => getM49Lon(d.id))
+						.attr("cy", d => getM49Lat(d.id))
+						.attr("r", d => glob_scale(getM49GlobalIndex(d.id)))
+						.attr("style", d => `
+							fill: none; 
+							stroke-width: ${2*glob_scale(getM49GlobalIndex(d.id))}px; 
+							stroke-dasharray: ${(getM49PolIndex(d.id) / (4*getM49GlobalIndex(d.id))) * (2*Math.PI*glob_scale(getM49GlobalIndex(d.id)))} ${2*Math.PI*getM49GlobalIndex(d.id)}; 
+							stroke: blue; 
+						`);
+				
 			});
 		});
 	</script>
