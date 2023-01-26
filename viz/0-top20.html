@@ -67,10 +67,14 @@
 			let iso2_iso3 = Object.fromEntries(datasets[2].map((c) => [c.iso2, c.iso3]));
 			// map m49 to country 
 			let m49_iso2 = Object.fromEntries(datasets[2].map((c) => [c.m49, c.iso2]));
+			// map m49 to country 
+			let m49_iso3 = Object.fromEntries(datasets[2].map((c) => [c.m49, c.iso3]));
 			// map iso2 to country centers
 			let countries_centers = Object.fromEntries(datasets[3].map((c) => [c.iso2, c]));
 
 			let data = datasets[0]; // gggi dataset
+
+			const controversed_m49_countries = ["-99", "732", "158"];
 
 			// dropdown years
 			let dropdown = body.select("h1").append("select");
@@ -111,6 +115,27 @@
 			var svg = d3.select("body").append("svg");
 			var xy = d3.geoMercator();
 			var path = d3.geoPath().projection(xy);
+
+			function getM49Lon(id) {
+				if (controversed_m49_countries.findIndex(e => e.id === id) !== -1)
+					return -500;
+
+				if (countries_centers[m49_iso2[id]] === undefined)
+					return -500;
+
+				return xy([countries_centers[m49_iso2[id]].lon, countries_centers[m49_iso2[id]].lat])[0];
+			}
+
+			function getM49Lat(id) {
+				if (controversed_m49_countries.findIndex(e => e.id === id) !== -1)
+					return -500;
+
+				if (countries_centers[m49_iso2[id]] === undefined)
+					return -500;
+
+				return xy([countries_centers[m49_iso2[id]].lon, countries_centers[m49_iso2[id]].lat])[1];
+			}
+
 			d3.json("./110m.json").then(function (world) {
 				svg
 					.selectAll("path")
@@ -139,8 +164,8 @@
 				svg
 					.selectAll(".container")
 					.append("circle")
-					.attr("cx", d => d.id === "-99" || d.id === "732" || d.id === "158" ? -500 : xy([countries_centers[m49_iso2[d.id]].lon, countries_centers[m49_iso2[d.id]].lat])[0])
-					.attr("cy", d => d.id === "-99" || d.id === "732" || d.id === "158" ? -500 : xy([countries_centers[m49_iso2[d.id]].lon, countries_centers[m49_iso2[d.id]].lat])[1])
+					.attr("cx", d => getM49Lon(d.id))
+					.attr("cy", d => getM49Lat(d.id))
 					.attr("r", 2);
 			});
 		});
